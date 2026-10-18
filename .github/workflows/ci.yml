@@ -1,0 +1,41 @@
+name: CI - build e lint
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.12"
+  REQUIREMENTS_FILE: requirements.txt
+
+jobs:
+  build-e-lint:
+    name: build-e-lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: ${{ env.REQUIREMENTS_FILE }}
+
+      - name: Instalar dependências da aplicação
+        run: pip install -r "$REQUIREMENTS_FILE"
+
+      - name: Lint com ruff
+        run: |
+          pip install ruff
+          ruff check .
+
+      - name: Verificar que a aplicação compila
+        run: python -m py_compile app.py
